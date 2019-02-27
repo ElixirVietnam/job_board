@@ -1,0 +1,2 @@
+defmodule JobBoard do
+end
