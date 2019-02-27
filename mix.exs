@@ -13,6 +13,7 @@ defmodule JobBoard.MixProject do
 
   def application() do
     [
+      mod: {JobBoard, []},
       extra_applications: [:logger]
     ]
   end
