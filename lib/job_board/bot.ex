@@ -90,44 +90,44 @@ defmodule JobBoard.Bot do
 
   defp compute_labels_from_position(labels, position) do
     labels
-    |> put_if_contains?(position, "java", "Lang:Java")
-    |> put_if_contains?(position, "elixir", "Lang:Elixir")
-    |> put_if_contains?(position, "javascript", "Lang:JavaScript")
-    |> put_if_contains?(position, "js", "Lang:JavaScript")
-    |> put_if_contains?(position, "react", "Lang:JavaScript")
-    |> put_if_contains?(position, "c++", "Lang:C++")
-    |> put_if_contains?(position, "c#", "Lang:DotNet")
-    |> put_if_contains?(position, ".net", "Lang:DotNet")
-    |> put_if_contains?(position, "go", "Lang:Go")
-    |> put_if_contains?(position, "ruby", "Lang:Ruby")
-    |> put_if_contains?(position, "rails", "Lang:Ruby")
-    |> put_if_contains?(position, "php", "Lang:PHP")
-    |> put_if_contains?(position, "python", "Lang:Python")
-    |> put_if_contains?(position, "data engineer", "Data Engineer")
-    |> put_if_contains?(position, "data scientist", "Data Engineer")
-    |> put_if_contains?(position, "scala", "Lang:Scala")
-    |> put_if_contains?(position, "android", "Android")
-    |> put_if_contains?(position, "ios", "iOS")
-    |> put_if_contains?(position, "devops", "DevOps")
-    |> put_if_contains?(position, "qa", "Quality Control")
-    |> put_if_contains?(position, "qc", "Quality Control")
-    |> put_if_contains?(position, "senior", "Senior")
-    |> put_if_contains?(position, "junior", "Junior")
-    |> put_if_contains?(position, "intern", "Intern")
+    |> put_if_contains(position, "java", "Lang:Java")
+    |> put_if_contains(position, "elixir", "Lang:Elixir")
+    |> put_if_contains(position, "javascript", "Lang:JavaScript")
+    |> put_if_contains(position, "js", "Lang:JavaScript")
+    |> put_if_contains(position, "react", "Lang:JavaScript")
+    |> put_if_contains(position, "c++", "Lang:C++")
+    |> put_if_contains(position, "c#", "Lang:DotNet")
+    |> put_if_contains(position, ".net", "Lang:DotNet")
+    |> put_if_contains(position, "go", "Lang:Go")
+    |> put_if_contains(position, "ruby", "Lang:Ruby")
+    |> put_if_contains(position, "rails", "Lang:Ruby")
+    |> put_if_contains(position, "php", "Lang:PHP")
+    |> put_if_contains(position, "python", "Lang:Python")
+    |> put_if_contains(position, "data engineer", "Data Engineer")
+    |> put_if_contains(position, "data scientist", "Data Engineer")
+    |> put_if_contains(position, "scala", "Lang:Scala")
+    |> put_if_contains(position, "android", "Android")
+    |> put_if_contains(position, "ios", "iOS")
+    |> put_if_contains(position, "devops", "DevOps")
+    |> put_if_contains(position, "qa", "Quality Control")
+    |> put_if_contains(position, "qc", "Quality Control")
+    |> put_if_contains(position, "senior", "Senior")
+    |> put_if_contains(position, "junior", "Junior")
+    |> put_if_contains(position, "intern", "Intern")
   end
 
   defp compute_labels_from_location(labels, location) do
     labels
-    |> put_if_contains?(location, "sai gon", "Saigon")
-    |> put_if_contains?(location, "saigon", "Saigon")
-    |> put_if_contains?(location, "hcm", "Saigon")
-    |> put_if_contains?(location, "hn", "Hanoi")
-    |> put_if_contains?(location, "hanoi", "Hanoi")
-    |> put_if_contains?(location, "ha noi", "Hanoi")
-    |> put_if_contains?(location, "da nang", "Danang")
-    |> put_if_contains?(location, "danang", "Danang")
-    |> put_if_contains?(location, "dn", "Danang")
-    |> put_if_contains?(location, "remote", "Remote")
+    |> put_if_contains(location, "sai gon", "Saigon")
+    |> put_if_contains(location, "saigon", "Saigon")
+    |> put_if_contains(location, "hcm", "Saigon")
+    |> put_if_contains(location, "hn", "Hanoi")
+    |> put_if_contains(location, "hanoi", "Hanoi")
+    |> put_if_contains(location, "ha noi", "Hanoi")
+    |> put_if_contains(location, "da nang", "Danang")
+    |> put_if_contains(location, "danang", "Danang")
+    |> put_if_contains(location, "dn", "Danang")
+    |> put_if_contains(location, "remote", "Remote")
   end
 
   defp compute_labels_from_type(labels, type) do
@@ -139,7 +139,7 @@ defmodule JobBoard.Bot do
     end
   end
 
-  defp put_if_contains?(labels, position, keyword, label) do
+  defp put_if_contains(labels, position, keyword, label) do
     if String.contains?(position, keyword), do: MapSet.put(labels, label), else: labels
   end
 
@@ -158,8 +158,8 @@ defmodule JobBoard.Bot do
   defp fetch_option(options, name) do
     with {:ok, option} <- Keyword.fetch(options, name) do
       if value = get_option_value(option),
-         do: {:ok, value},
-         else: :error
+        do: {:ok, value},
+        else: :error
     end
   end
 
