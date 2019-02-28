@@ -1,5 +1,8 @@
 %{
+  "artificery": {:hex, :artificery, "0.4.0", "e0b8d3eb9dfe8f42c08a620f90a2aa9cef5dba9fcdfcecad5c2be451df159a77", [:mix], [], "hexpm"},
   "certifi": {:hex, :certifi, "0.7.0", "861a57f3808f7eb0c2d1802afeaae0fa5de813b0df0979153cbafcd853ababaf", [:rebar3], [], "hexpm"},
+  "dicon": {:hex, :dicon, "0.5.0", "1f71a080af76612d1a163015f4cbddb41774b2d59a3f807aa432af34adae064b", [:mix], [], "hexpm"},
+  "distillery": {:hex, :distillery, "2.0.12", "6e78fe042df82610ac3fa50bd7d2d8190ad287d120d3cd1682d83a44e8b34dfb", [:mix], [{:artificery, "~> 0.2", [hex: :artificery, repo: "hexpm", optional: false]}], "hexpm"},
   "hackney": {:hex, :hackney, "1.6.5", "8c025ee397ac94a184b0743c73b33b96465e85f90a02e210e86df6cbafaa5065", [:rebar3], [{:certifi, "0.7.0", [hex: :certifi, repo: "hexpm", optional: false]}, {:idna, "1.2.0", [hex: :idna, repo: "hexpm", optional: false]}, {:metrics, "1.0.1", [hex: :metrics, repo: "hexpm", optional: false]}, {:mimerl, "1.0.2", [hex: :mimerl, repo: "hexpm", optional: false]}, {:ssl_verify_fun, "1.1.1", [hex: :ssl_verify_fun, repo: "hexpm", optional: false]}], "hexpm"},
   "idna": {:hex, :idna, "1.2.0", "ac62ee99da068f43c50dc69acf700e03a62a348360126260e87f2b54eced86b2", [:rebar3], [], "hexpm"},
   "jason": {:hex, :jason, "1.1.2", "b03dedea67a99223a2eaf9f1264ce37154564de899fd3d8b9a21b1a6fd64afe7", [:mix], [{:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm"},

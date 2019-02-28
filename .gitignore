@@ -1,5 +1,6 @@
 /_build/
 /deps/
 erl_crash.dump
+_release/
 
 /config/*.private.exs

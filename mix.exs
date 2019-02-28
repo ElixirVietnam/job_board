@@ -21,7 +21,9 @@ defmodule JobBoard.MixProject do
   defp deps() do
     [
       {:hackney, "== 1.6.5"},
-      {:jason, "~> 1.1"}
+      {:jason, "~> 1.1"},
+      {:dicon, "~> 0.5.0", runtime: false},
+      {:distillery, "~> 2.0", runtime: false}
     ]
   end
 end
