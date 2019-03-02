@@ -10,6 +10,7 @@ defmodule JobBoard.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      aliases: aliases(),
       xref: [
         exclude: [
           JobBoard.HTTPClient.Mock
@@ -33,5 +34,9 @@ defmodule JobBoard.MixProject do
       {:distillery, "~> 2.0", runtime: false},
       {:mox, "~> 0.5", only: :test}
     ]
+  end
+
+  defp aliases() do
+    [test: ["test --no-start"]]
   end
 end
