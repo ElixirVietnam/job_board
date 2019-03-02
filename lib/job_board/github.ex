@@ -1,11 +1,7 @@
 defmodule JobBoard.Github do
   require Logger
 
-  @hackney_pool :github
-
-  def child_spec([]) do
-    :hackney_pool.child_spec(@hackney_pool, timeout: 15_000, max_connections: 5)
-  end
+  @http_client Application.get_env(:job_board, :http_client, JobBoard.HTTPClient.Standard)
 
   def stream_issues(owner, repo) do
     Stream.unfold(1, fn page ->
@@ -26,7 +22,7 @@ defmodule JobBoard.Github do
 
     req_headers = [{"accept", "application/json"}]
 
-    case :hackney.request(:get, req_url, req_headers, [], build_req_options()) do
+    case @http_client.request(:get, req_url, req_headers, [], build_req_options()) do
       {:ok, 200, resp_headers, resp_body} ->
         case Jason.decode(resp_body) do
           {:ok, payload} ->
@@ -77,7 +73,7 @@ defmodule JobBoard.Github do
 
     req_body = Jason.encode_to_iodata!(payload)
 
-    case :hackney.request(:patch, req_url, req_headers, req_body, build_req_options()) do
+    case @http_client.request(:patch, req_url, req_headers, req_body, build_req_options()) do
       {:ok, 200, _resp_headers, resp_body} ->
         with {:error, _reason} <- Jason.decode(resp_body) do
           Logger.error("Could not decode response body: " <> inspect(resp_body))
@@ -119,7 +115,7 @@ defmodule JobBoard.Github do
 
     req_body = Jason.encode_to_iodata!(%{body: comment_body})
 
-    case :hackney.request(:post, req_url, req_headers, req_body, build_req_options()) do
+    case @http_client.request(:post, req_url, req_headers, req_body, build_req_options()) do
       {:ok, 201, _resp_headers, resp_body} ->
         with {:error, _reason} <- Jason.decode(resp_body) do
           Logger.error("Could not decode response body: " <> inspect(resp_body))
@@ -146,8 +142,6 @@ defmodule JobBoard.Github do
     config = Application.fetch_env!(:job_board, __MODULE__)
 
     [
-      :with_body,
-      pool: @hackney_pool,
       basic_auth: {
         fetch_option(config, :username),
         fetch_option(config, :access_token)
