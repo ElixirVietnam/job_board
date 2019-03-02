@@ -9,7 +9,12 @@ defmodule JobBoard.MixProject do
       version: @version,
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      xref: [
+        exclude: [
+          JobBoard.HTTPClient.Mock
+        ]
+      ]
     ]
   end
 
@@ -25,7 +30,8 @@ defmodule JobBoard.MixProject do
       {:hackney, "== 1.6.5"},
       {:jason, "~> 1.1"},
       {:dicon, "~> 0.5.0", runtime: false},
-      {:distillery, "~> 2.0", runtime: false}
+      {:distillery, "~> 2.0", runtime: false},
+      {:mox, "~> 0.5", only: :test}
     ]
   end
 end
