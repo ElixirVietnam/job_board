@@ -44,7 +44,7 @@ defmodule JobBoard.Bot do
     {:noreply, state}
   end
 
-  defp perform_issue(issue, %{owner: owner, repo: repo}) do
+  def perform_issue(issue, %{owner: owner, repo: repo}) do
     %{"title" => title, "number" => number, "labels" => labels} = issue
 
     if expired?(issue) do
@@ -72,10 +72,12 @@ defmodule JobBoard.Bot do
           Logger.debug("Added labels to issue: #{inspect(labels)}", issue_number: number)
         end
       end
+
+      :ok
     end
   end
 
-  def compute_labels(labels, title) do
+  defp compute_labels(labels, title) do
     case title |> String.downcase() |> String.split(" - ", parts: 4) do
       [_company_name, position, location, type] ->
         labels

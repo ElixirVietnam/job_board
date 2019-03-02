@@ -8,7 +8,7 @@ defmodule JobBoard do
       |> Keyword.put_new(:interval, _15_minutes = 90_000)
 
     children = [
-      JobBoard.Github,
+      JobBoard.HTTPClient.Standard,
       {JobBoard.Bot, bot_options}
     ]
 
