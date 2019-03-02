@@ -72,6 +72,8 @@ defmodule JobBoard.Bot do
           Logger.debug("Added labels to issue: #{inspect(labels)}", issue_number: number)
         end
       end
+
+      :ok
     end
   end
 

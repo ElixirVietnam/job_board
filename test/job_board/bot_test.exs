@@ -14,7 +14,7 @@ defmodule JobBoard.BotTest do
     "title" => "Dummy",
     "number" => 1,
     "labels" => [],
-    "created_at" => nil
+    "created_at" => NaiveDateTime.utc_now() |> NaiveDateTime.to_iso8601()
   }
 
   describe "perform_issue/2" do
@@ -50,6 +50,125 @@ defmodule JobBoard.BotTest do
         end)
 
       assert log =~ "Closed expired job"
+    end
+
+    defp assert_putting_label(issue, label) do
+      expect(HTTPClient.Mock, :request, fn :patch, req_url, _, req_body, _ ->
+        assert IO.iodata_to_binary(req_url) == "https://api.github.com/repos/foo/bar/issues/1"
+
+        assert %{"labels" => labels} = Jason.decode!(req_body)
+
+        assert label in labels
+
+        {:ok, 200, [], Jason.encode!(issue)}
+      end)
+
+      log =
+        ExUnit.CaptureLog.capture_log(fn ->
+          assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+        end)
+
+      assert log =~ "Added labels to issue"
+    end
+
+    test "adds location label to issue accordingly" do
+      locations = [
+        {"HCM", "Saigon"},
+        {"Sai Gon", "Saigon"},
+        {"Ha Noi", "Hanoi"},
+        {"HN", "Hanoi"},
+        {"hn", "Hanoi"},
+        {"Da nang", "Danang"},
+        {"DN", "Danang"},
+        {"Remote", "Remote"}
+      ]
+
+      for {location_text, location_label} <- locations do
+        issue = %{@issue | "title" => "A - Ruby on Rails developer - #{location_text} - FT"}
+
+        assert_putting_label(issue, location_label)
+      end
+    end
+
+    test "adds language label to issue accordingly" do
+      languages = [
+        {"Ruby on Rails developer", "Lang:Ruby"},
+        {"NodeJS developer", "Lang:JavaScript"},
+        {"Golang engineer", "Lang:Go"},
+        {"Backend engineer (Scala)", "Lang:Scala"},
+        {".NET developer", "Lang:DotNet"},
+        {"03 Data engineer", "Data Engineer"},
+        {"QA Engineer", "Quality Control"},
+        {"QC/QA", "Quality Control"},
+        {"DevOps engineer", "DevOps"}
+      ]
+
+      for {language_text, language_label} <- languages do
+        issue = %{@issue | "title" => "A - #{language_text} - Hanoi - FT"}
+
+        assert_putting_label(issue, language_label)
+      end
+    end
+
+    test "adds level label to issue accordingly" do
+      levels = [
+        {"Senior Backend Developer", "Senior"},
+        {"Junior front-end engineer", "Junior"},
+        {"03 Intern to work on very interesting project", "Intern"}
+      ]
+
+      for {level_text, level_label} <- levels do
+        issue = %{@issue | "title" => "A - #{level_text} - Hanoi - FT"}
+
+        assert_putting_label(issue, level_label)
+      end
+    end
+
+    test "adds contract type label to issue accordingly" do
+      contract_types = [
+        {"FT", "Full-time"},
+        {"PT", "Part-time"},
+        {"C", "Contract"}
+      ]
+
+      for {contract_type_text, contract_type_label} <- contract_types do
+        issue = %{@issue | "title" => "A - Engineer - Hanoi - #{contract_type_text}"}
+
+        assert_putting_label(issue, contract_type_label)
+      end
+    end
+
+    test "keeps existing labels" do
+      issue = %{
+        @issue
+        | "labels" => [%{"name" => "Foo"}, %{"name" => "Bar"}],
+          "title" => "A - B - C - FT"
+      }
+
+      expect(HTTPClient.Mock, :request, fn :patch, req_url, _, req_body, _ ->
+        assert IO.iodata_to_binary(req_url) == "https://api.github.com/repos/foo/bar/issues/1"
+
+        assert %{"labels" => labels} = Jason.decode!(req_body)
+
+        assert "Foo" in labels
+        assert "Bar" in labels
+
+        {:ok, 200, [], Jason.encode!(issue)}
+      end)
+
+      ExUnit.CaptureLog.capture_log(fn ->
+        assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+      end)
+    end
+
+    test "skips making requests if labels have not changed" do
+      issue = %{
+        @issue
+        | "labels" => [%{"name" => "Foo"}, %{"name" => "Bar"}],
+          "title" => "Random title"
+      }
+
+      assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
     end
   end
 end
