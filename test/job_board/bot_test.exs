@@ -71,6 +71,25 @@ defmodule JobBoard.BotTest do
       assert log =~ "Added labels to issue"
     end
 
+    defp assert_not_putting_label(issue, label) do
+      expect(HTTPClient.Mock, :request, fn :patch, req_url, _, req_body, _ ->
+        assert IO.iodata_to_binary(req_url) == "https://api.github.com/repos/foo/bar/issues/1"
+
+        assert %{"labels" => labels} = Jason.decode!(req_body)
+
+        assert label not in labels
+
+        {:ok, 200, [], Jason.encode!(issue)}
+      end)
+
+      log =
+        ExUnit.CaptureLog.capture_log(fn ->
+          assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+        end)
+
+      assert log =~ "Added labels to issue"
+    end
+
     test "adds location label to issue accordingly" do
       locations = [
         {"HCM", "Saigon"},
@@ -93,6 +112,7 @@ defmodule JobBoard.BotTest do
     test "adds language label to issue accordingly" do
       languages = [
         {"Ruby on Rails developer", "Lang:Ruby"},
+        {"javascript developer", "Lang:JavaScript"},
         {"NodeJS developer", "Lang:JavaScript"},
         {"Golang engineer", "Lang:Go"},
         {"Backend engineer (Scala)", "Lang:Scala"},
@@ -107,6 +127,18 @@ defmodule JobBoard.BotTest do
         issue = %{@issue | "title" => "A - #{language_text} - Hanoi - FT"}
 
         assert_putting_label(issue, language_label)
+      end
+    end
+
+    test "does not add wrong language label to issue" do
+      languages = [
+        {"javascript developer", "Lang:Java"},
+      ]
+
+      for {language_text, language_label} <- languages do
+        issue = %{@issue | "title" => "A - #{language_text} - Hanoi - FT"}
+
+        assert_not_putting_label(issue, language_label)
       end
     end
 
