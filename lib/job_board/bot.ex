@@ -92,7 +92,7 @@ defmodule JobBoard.Bot do
 
   defp compute_labels_from_position(labels, position) do
     labels
-    |> put_if_contains(position, "java", "Lang:Java")
+    |> put_if_contains(position, "java ", "Lang:Java")
     |> put_if_contains(position, "elixir", "Lang:Elixir")
     |> put_if_contains(position, "javascript", "Lang:JavaScript")
     |> put_if_contains(position, "js", "Lang:JavaScript")
