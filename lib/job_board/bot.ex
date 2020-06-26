@@ -90,46 +90,64 @@ defmodule JobBoard.Bot do
     end
   end
 
+  @technology_labels [
+    {"javascript", "Lang:JavaScript"},
+    {"java", "Lang:Java"},
+    {"elixir", "Lang:Elixir"},
+    {"js", "Lang:JavaScript"},
+    {"react", "Lang:JavaScript"},
+    {"c++", "Lang:C++"},
+    {"c#", "Lang:DotNet"},
+    {".net", "Lang:DotNet"},
+    {"go", "Lang:Go"},
+    {"ruby", "Lang:Ruby"},
+    {"rails", "Lang:Ruby"},
+    {"php", "Lang:PHP"},
+    {"python", "Lang:Python"},
+    {"data engineer", "Data Engineer"},
+    {"data scientist", "Data Engineer"},
+    {"scala", "Lang:Scala"},
+    {"android", "Android"},
+    {"ios", "iOS"},
+    {"devops", "DevOps"},
+    {"qa", "Quality Control"},
+    {"qc", "Quality Control"},
+    {"senior", "Senior"},
+    {"junior", "Junior"},
+    {"intern", "Intern"}
+  ]
+
   defp compute_labels_from_position(labels, position) do
+    {_, labels} =
+      Enum.reduce(@technology_labels, {position, labels}, fn {pattern, label}, {position, acc} ->
+        put_if_contains(acc, position, pattern, label)
+      end)
+
     labels
-    |> put_if_contains(position, "java ", "Lang:Java")
-    |> put_if_contains(position, "elixir", "Lang:Elixir")
-    |> put_if_contains(position, "javascript", "Lang:JavaScript")
-    |> put_if_contains(position, "js", "Lang:JavaScript")
-    |> put_if_contains(position, "react", "Lang:JavaScript")
-    |> put_if_contains(position, "c++", "Lang:C++")
-    |> put_if_contains(position, "c#", "Lang:DotNet")
-    |> put_if_contains(position, ".net", "Lang:DotNet")
-    |> put_if_contains(position, "go", "Lang:Go")
-    |> put_if_contains(position, "ruby", "Lang:Ruby")
-    |> put_if_contains(position, "rails", "Lang:Ruby")
-    |> put_if_contains(position, "php", "Lang:PHP")
-    |> put_if_contains(position, "python", "Lang:Python")
-    |> put_if_contains(position, "data engineer", "Data Engineer")
-    |> put_if_contains(position, "data scientist", "Data Engineer")
-    |> put_if_contains(position, "scala", "Lang:Scala")
-    |> put_if_contains(position, "android", "Android")
-    |> put_if_contains(position, "ios", "iOS")
-    |> put_if_contains(position, "devops", "DevOps")
-    |> put_if_contains(position, "qa", "Quality Control")
-    |> put_if_contains(position, "qc", "Quality Control")
-    |> put_if_contains(position, "senior", "Senior")
-    |> put_if_contains(position, "junior", "Junior")
-    |> put_if_contains(position, "intern", "Intern")
   end
 
+  @location_labels [
+    {"sai gon", "Saigon"},
+    {"saigon", "Saigon"},
+    {"hcm", "Saigon"},
+    {"ho chi minh", "Saigon"},
+    {"tphcm", "Saigon"},
+    {"hn", "Hanoi"},
+    {"hanoi", "Hanoi"},
+    {"ha noi", "Hanoi"},
+    {"da nang", "Danang"},
+    {"danang", "Danang"},
+    {"dn", "Danang"},
+    {"remote", "Remote"}
+  ]
+
   defp compute_labels_from_location(labels, location) do
+    {_, labels} =
+      Enum.reduce(@location_labels, {location, labels}, fn {pattern, label}, {location, acc} ->
+        put_if_contains(acc, location, pattern, label)
+      end)
+
     labels
-    |> put_if_contains(location, "sai gon", "Saigon")
-    |> put_if_contains(location, "saigon", "Saigon")
-    |> put_if_contains(location, "hcm", "Saigon")
-    |> put_if_contains(location, "hn", "Hanoi")
-    |> put_if_contains(location, "hanoi", "Hanoi")
-    |> put_if_contains(location, "ha noi", "Hanoi")
-    |> put_if_contains(location, "da nang", "Danang")
-    |> put_if_contains(location, "danang", "Danang")
-    |> put_if_contains(location, "dn", "Danang")
-    |> put_if_contains(location, "remote", "Remote")
   end
 
   defp compute_labels_from_type(labels, type) do
@@ -141,8 +159,12 @@ defmodule JobBoard.Bot do
     end
   end
 
-  defp put_if_contains(labels, position, keyword, label) do
-    if String.contains?(position, keyword), do: MapSet.put(labels, label), else: labels
+  defp put_if_contains(labels, string, pattern, label) do
+    if String.contains?(string, pattern) do
+      {String.replace(string, pattern, ""), MapSet.put(labels, label)}
+    else
+      {string, labels}
+    end
   end
 
   defp expired?(%{"created_at" => created_at}) do
