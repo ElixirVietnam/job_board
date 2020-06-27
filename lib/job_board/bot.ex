@@ -61,7 +61,7 @@ defmodule JobBoard.Bot do
       end
     else
       existing_labels = labels |> Enum.map(& &1["name"]) |> MapSet.new()
-      labels = compute_labels(existing_labels, title)
+      labels = determine_labels(existing_labels, title)
 
       if labels != existing_labels do
         payload = %{
@@ -77,13 +77,13 @@ defmodule JobBoard.Bot do
     end
   end
 
-  defp compute_labels(labels, title) do
+  defp determine_labels(labels, title) do
     case title |> String.downcase() |> String.split(" - ", parts: 4) do
       [_company_name, position, location, type] ->
         labels
-        |> compute_labels_from_position(String.trim(position))
-        |> compute_labels_from_location(String.trim(location))
-        |> compute_labels_from_type(String.trim(type))
+        |> determine_labels_from_position(String.trim(position))
+        |> determine_labels_from_location(String.trim(location))
+        |> determine_labels_from_type(String.trim(type))
 
       _other ->
         labels
@@ -117,7 +117,7 @@ defmodule JobBoard.Bot do
     {"intern", "Intern"}
   ]
 
-  defp compute_labels_from_position(labels, position) do
+  defp determine_labels_from_position(labels, position) do
     {_, labels} =
       Enum.reduce(@technology_labels, {position, labels}, fn {pattern, label}, {position, acc} ->
         put_if_contains(acc, position, pattern, label)
@@ -141,7 +141,7 @@ defmodule JobBoard.Bot do
     {"remote", "Remote"}
   ]
 
-  defp compute_labels_from_location(labels, location) do
+  defp determine_labels_from_location(labels, location) do
     {_, labels} =
       Enum.reduce(@location_labels, {location, labels}, fn {pattern, label}, {location, acc} ->
         put_if_contains(acc, location, pattern, label)
@@ -150,7 +150,7 @@ defmodule JobBoard.Bot do
     labels
   end
 
-  defp compute_labels_from_type(labels, type) do
+  defp determine_labels_from_type(labels, type) do
     case type do
       "ft" -> MapSet.put(labels, "Full-time")
       "pt" -> MapSet.put(labels, "Part-time")

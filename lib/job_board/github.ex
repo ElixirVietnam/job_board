@@ -2,6 +2,7 @@ defmodule JobBoard.Github do
   require Logger
 
   @http_client Application.get_env(:job_board, :http_client, JobBoard.HTTPClient.Standard)
+  @config Application.fetch_env!(:job_board, __MODULE__)
 
   def stream_issues(owner, repo) do
     Stream.unfold(1, fn page ->
@@ -139,12 +140,10 @@ defmodule JobBoard.Github do
   end
 
   defp build_req_options() do
-    config = Application.fetch_env!(:job_board, __MODULE__)
-
     [
       basic_auth: {
-        fetch_option(config, :username),
-        fetch_option(config, :access_token)
+        fetch_option(@config, :username),
+        fetch_option(@config, :access_token)
       }
     ]
   end
