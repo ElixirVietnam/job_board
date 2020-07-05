@@ -19,11 +19,11 @@ defmodule JobBoard.Github do
   defp list_issues(owner, repo, page) when page > 0 do
     query_string = URI.encode_query(%{page: page})
 
-    req_url = ["https://api.github.com/repos/", owner, ?/, repo, "/issues", ?? | query_string]
+    req_url = ["/repos/", owner, ?/, repo, "/issues", ?? | query_string]
 
     req_headers = [{"accept", "application/json"}]
 
-    case @http_client.request(:get, req_url, req_headers, [], build_req_options()) do
+    case @http_client.request(:get, req_url, req_headers, []) do
       {:ok, 200, resp_headers, resp_body} ->
         case Jason.decode(resp_body) do
           {:ok, payload} ->
@@ -59,7 +59,7 @@ defmodule JobBoard.Github do
   def update_issue(owner, repo, issue_id, payload)
       when is_number(issue_id) and is_map(payload) do
     req_url = [
-      "https://api.github.com/repos/",
+      "/repos/",
       owner,
       ?/,
       repo,
@@ -68,13 +68,14 @@ defmodule JobBoard.Github do
     ]
 
     req_headers = [
+      {"authorization", "token " <> fetch_option(@config, :access_token)},
       {"content-type", "application/json"},
       {"accept", "application/json"}
     ]
 
     req_body = Jason.encode_to_iodata!(payload)
 
-    case @http_client.request(:patch, req_url, req_headers, req_body, build_req_options()) do
+    case @http_client.request(:patch, req_url, req_headers, req_body) do
       {:ok, 200, _resp_headers, resp_body} ->
         with {:error, _reason} <- Jason.decode(resp_body) do
           Logger.error("Could not decode response body: " <> inspect(resp_body))
@@ -100,7 +101,7 @@ defmodule JobBoard.Github do
   def create_comment(owner, repo, issue_id, comment_body)
       when is_number(issue_id) and is_binary(comment_body) do
     req_url = [
-      "https://api.github.com/repos/",
+      "/repos/",
       owner,
       ?/,
       repo,
@@ -110,13 +111,14 @@ defmodule JobBoard.Github do
     ]
 
     req_headers = [
+      {"authorization", "token " <> fetch_option(@config, :access_token)},
       {"content-type", "application/json"},
       {"accept", "application/json"}
     ]
 
     req_body = Jason.encode_to_iodata!(%{body: comment_body})
 
-    case @http_client.request(:post, req_url, req_headers, req_body, build_req_options()) do
+    case @http_client.request(:post, req_url, req_headers, req_body) do
       {:ok, 201, _resp_headers, resp_body} ->
         with {:error, _reason} <- Jason.decode(resp_body) do
           Logger.error("Could not decode response body: " <> inspect(resp_body))
@@ -137,15 +139,6 @@ defmodule JobBoard.Github do
 
         :error
     end
-  end
-
-  defp build_req_options() do
-    [
-      basic_auth: {
-        fetch_option(@config, :username),
-        fetch_option(@config, :access_token)
-      }
-    ]
   end
 
   defp fetch_option(options, name) do
