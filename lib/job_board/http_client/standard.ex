@@ -1,11 +1,13 @@
 defmodule JobBoard.HTTPClient.Standard do
+  alias JobBoard.HTTPClient
+
   @behaviour JobBoard.HTTPClient
 
   @pool_name :mint_pool
 
   @pool_config [
     name: {:local, @pool_name},
-    worker_module: JobBoard.HTTPClient.Connection,
+    worker_module: HTTPClient.Connection,
     size: 5,
     max_overflow: 1
   ]
@@ -22,7 +24,8 @@ defmodule JobBoard.HTTPClient.Standard do
 
     :poolboy.transaction(
       @pool_name,
-      &JobBoard.HTTPClient.Connection.request(&1, method, path, headers, body)
+      &HTTPClient.Connection.request(&1, method, path, headers, body),
+      5_000
     )
   end
 

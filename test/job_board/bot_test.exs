@@ -131,7 +131,7 @@ defmodule JobBoard.BotTest do
 
     test "does not add wrong language label to issue" do
       languages = [
-        {"javascript developer", "Lang:Java"},
+        {"javascript developer", "Lang:Java"}
       ]
 
       for {language_text, language_label} <- languages do
