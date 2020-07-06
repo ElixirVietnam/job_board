@@ -26,8 +26,8 @@ defmodule JobBoard.BotTest do
 
       issue = %{@issue | "created_at" => created_at}
 
-      expect(HTTPClient.Mock, :request, fn :patch, req_url, _, req_body, _ ->
-        assert IO.iodata_to_binary(req_url) == "https://api.github.com/repos/foo/bar/issues/1"
+      expect(HTTPClient.Mock, :request, fn :patch, req_path, _, req_body ->
+        assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1"
 
         assert Jason.decode!(req_body) == %{
                  "labels" => ["Expired"],
@@ -37,9 +37,8 @@ defmodule JobBoard.BotTest do
         {:ok, 200, [], Jason.encode!(issue)}
       end)
 
-      expect(HTTPClient.Mock, :request, fn :post, req_url, _, _, _ ->
-        assert IO.iodata_to_binary(req_url) ==
-                 "https://api.github.com/repos/foo/bar/issues/1/comments"
+      expect(HTTPClient.Mock, :request, fn :post, req_path, _, _ ->
+        assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1/comments"
 
         {:ok, 201, [], "{}"}
       end)
@@ -53,8 +52,8 @@ defmodule JobBoard.BotTest do
     end
 
     defp assert_putting_label(issue, label) do
-      expect(HTTPClient.Mock, :request, fn :patch, req_url, _, req_body, _ ->
-        assert IO.iodata_to_binary(req_url) == "https://api.github.com/repos/foo/bar/issues/1"
+      expect(HTTPClient.Mock, :request, fn :patch, req_path, _, req_body ->
+        assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1"
 
         assert %{"labels" => labels} = Jason.decode!(req_body)
 
@@ -72,8 +71,8 @@ defmodule JobBoard.BotTest do
     end
 
     defp assert_not_putting_label(issue, label) do
-      expect(HTTPClient.Mock, :request, fn :patch, req_url, _, req_body, _ ->
-        assert IO.iodata_to_binary(req_url) == "https://api.github.com/repos/foo/bar/issues/1"
+      expect(HTTPClient.Mock, :request, fn :patch, req_path, _, req_body ->
+        assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1"
 
         assert %{"labels" => labels} = Jason.decode!(req_body)
 
@@ -132,7 +131,7 @@ defmodule JobBoard.BotTest do
 
     test "does not add wrong language label to issue" do
       languages = [
-        {"javascript developer", "Lang:Java"},
+        {"javascript developer", "Lang:Java"}
       ]
 
       for {language_text, language_label} <- languages do
@@ -177,8 +176,8 @@ defmodule JobBoard.BotTest do
           "title" => "A - B - C - FT"
       }
 
-      expect(HTTPClient.Mock, :request, fn :patch, req_url, _, req_body, _ ->
-        assert IO.iodata_to_binary(req_url) == "https://api.github.com/repos/foo/bar/issues/1"
+      expect(HTTPClient.Mock, :request, fn :patch, req_path, _, req_body ->
+        assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1"
 
         assert %{"labels" => labels} = Jason.decode!(req_body)
 
