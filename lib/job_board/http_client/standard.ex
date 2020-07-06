@@ -3,7 +3,7 @@ defmodule JobBoard.HTTPClient.Standard do
 
   @behaviour JobBoard.HTTPClient
 
-  @pool_name :mint_pool
+  @pool_name :github_pool
 
   @pool_config [
     name: {:local, @pool_name},
