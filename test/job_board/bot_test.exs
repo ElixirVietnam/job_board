@@ -14,6 +14,8 @@ defmodule JobBoard.BotTest do
     "title" => "Dummy",
     "number" => 1,
     "labels" => [],
+    "body" => "Dummy body",
+    "user" => %{"login" => "foo"},
     "created_at" => NaiveDateTime.utc_now() |> NaiveDateTime.to_iso8601()
   }
 
@@ -200,6 +202,34 @@ defmodule JobBoard.BotTest do
       }
 
       assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+    end
+
+    test "closes job posts that might be from agency" do
+      issue = %{@issue | "body" => "Email: foo@gmail.com"}
+
+      expect(HTTPClient.Mock, :request, fn :patch, req_path, _, req_body ->
+        assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1"
+
+        assert Jason.decode!(req_body) == %{
+                 "labels" => ["Maybe Agency"],
+                 "state" => "closed"
+               }
+
+        {:ok, 200, [], Jason.encode!(issue)}
+      end)
+
+      expect(HTTPClient.Mock, :request, fn :post, req_path, _, _ ->
+        assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1/comments"
+
+        {:ok, 201, [], "{}"}
+      end)
+
+      log =
+        ExUnit.CaptureLog.capture_log(fn ->
+          assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+        end)
+
+      assert log =~ "Closed job because it might be from agencies"
     end
   end
 end
