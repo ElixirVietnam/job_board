@@ -22,7 +22,7 @@ defmodule JobBoard.HTTPClient.Connection do
   def connect(_info, state) do
     case connect(state.endpoint_uri) do
       {:ok, conn} ->
-        {:ok, %{state | conn: conn}}
+        {:ok, %{state | ref: nil, conn: conn}}
 
       {:error, :invalid_uri} ->
         {:stop, :invalid_uri, state}
