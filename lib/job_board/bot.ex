@@ -47,33 +47,57 @@ defmodule JobBoard.Bot do
   def perform_issue(issue, %{owner: owner, repo: repo}) do
     %{"title" => title, "number" => number, "labels" => labels} = issue
 
-    if expired?(issue) do
-      payload = %{
-        state: "closed",
-        labels: ["Expired"]
-      }
-
-      with {:ok, _issue} <- Github.update_issue(owner, repo, number, payload),
-           closing_comment =
-             ":robot: Closing this job post because it has been expired :alarm_clock:.",
-           {:ok, _comment} <- Github.create_comment(owner, repo, number, closing_comment) do
-        Logger.debug("Closed expired job", issue_number: Integer.to_string(number))
-      end
-    else
-      existing_labels = labels |> Enum.map(& &1["name"]) |> MapSet.new()
-      labels = determine_labels(existing_labels, title)
-
-      if labels != existing_labels do
+    cond do
+      expired?(issue) ->
         payload = %{
-          labels: MapSet.to_list(labels)
+          state: "closed",
+          labels: ["Expired"]
         }
 
-        with {:ok, _} <- Github.update_issue(owner, repo, number, payload) do
-          Logger.debug("Added labels to issue: #{inspect(labels)}", issue_number: number)
+        with {:ok, _issue} <- Github.update_issue(owner, repo, number, payload),
+             closing_comment =
+               ":robot: Closing this job post because it has been expired :alarm_clock:.",
+             {:ok, _comment} <- Github.create_comment(owner, repo, number, closing_comment) do
+          Logger.debug("Closed expired job", issue_number: Integer.to_string(number))
         end
-      end
 
-      :ok
+      maybe_from_agency?(issue) ->
+        payload = %{
+          state: "closed",
+          labels: ["Maybe Agency"]
+        }
+
+        with {:ok, _issue} <- Github.update_issue(owner, repo, number, payload),
+             closing_comment = """
+             Thank you for posting! We see that you are using personal emails for contact info. Currently we do not accept jobs from head-hunters or agencies for the sake of the high quality of the job board.
+
+             In case of misunderstanding, please help to clarify with a comment. This post will remain closed until the concern is fully addressed.
+
+             Thank you and have a good day!
+             """,
+             {:ok, _comment} <- Github.create_comment(owner, repo, number, closing_comment) do
+          Logger.debug("Closed job because it might be from agencies",
+            issue_number: Integer.to_string(number)
+          )
+        end
+
+        :ok
+
+      true ->
+        existing_labels = labels |> Enum.map(& &1["name"]) |> MapSet.new()
+        labels = determine_labels(existing_labels, title)
+
+        if labels != existing_labels do
+          payload = %{
+            labels: MapSet.to_list(labels)
+          }
+
+          with {:ok, _} <- Github.update_issue(owner, repo, number, payload) do
+            Logger.debug("Added labels to issue: #{inspect(labels)}", issue_number: number)
+          end
+        end
+
+        :ok
     end
   end
 
@@ -173,6 +197,16 @@ defmodule JobBoard.Bot do
     expiry_threshold = _100_days = 100 * 24 * 60 * 60
 
     NaiveDateTime.diff(NaiveDateTime.utc_now(), created_at) > expiry_threshold
+  end
+
+  @authorized_users ["Jesse111-flyaway"]
+
+  defp maybe_from_agency?(%{"body" => body, "labels" => labels, "user" => %{"login" => login}}) do
+    label_names = Enum.map(labels, &Map.fetch!(&1, "name"))
+
+    "Authorized" not in label_names and
+      login not in @authorized_users and
+      String.contains?(body, "@gmail.com")
   end
 
   defp schedule_perform(interval) do
