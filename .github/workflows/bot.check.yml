@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - cam/test-runner
+
   schedule:
       - cron:  '*/5 * * * *'
 
