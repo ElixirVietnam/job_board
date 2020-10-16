@@ -1,6 +1,4 @@
 defmodule JobBoard.Bot do
-  use GenServer
-
   alias JobBoard.Github
 
   require Logger
@@ -8,41 +6,15 @@ defmodule JobBoard.Bot do
   @enforce_keys [:interval, :repo]
   defstruct @enforce_keys
 
-  def start_link(options) do
-    GenServer.start_link(__MODULE__, options, name: __MODULE__)
-  end
-
-  def init(options) do
-    schedule_perform(0)
-
-    with {:ok, repo} <- fetch_option(options, :repo),
-         {:ok, interval} <- fetch_option(options, :interval) do
-      state = %__MODULE__{
-        interval: interval,
-        repo: repo
-      }
-
-      {:ok, state}
-    else
-      :error -> {:stop, :missing_required_option}
-    end
-  end
-
-  def handle_info(:perform, state) do
-    schedule_perform(state.interval)
-
-    state.repo
+  def perform(repo) do
+    repo
     |> Github.stream_issues()
     |> Stream.flat_map(& &1)
-    |> Task.async_stream(&perform_issue(&1, state))
+    |> Task.async_stream(&perform_issue(&1, repo))
     |> Stream.run()
-
-    Logger.debug("Finished performing")
-
-    {:noreply, state}
   end
 
-  def perform_issue(issue, %{repo: repo}) do
+  def perform_issue(issue, repo) do
     %{"title" => title, "number" => number, "labels" => labels} = issue
 
     cond do
@@ -206,19 +178,4 @@ defmodule JobBoard.Bot do
       login not in @authorized_users and
       String.contains?(body, "@gmail.com")
   end
-
-  defp schedule_perform(interval) do
-    Process.send_after(self(), :perform, interval)
-  end
-
-  defp fetch_option(options, name) do
-    with {:ok, option} <- Keyword.fetch(options, name) do
-      if value = get_option_value(option),
-        do: {:ok, value},
-        else: :error
-    end
-  end
-
-  defp get_option_value({:system, env_var}), do: System.get_env(env_var)
-  defp get_option_value(value), do: value
 end

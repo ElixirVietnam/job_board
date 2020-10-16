@@ -1,0 +1,38 @@
+name: Elixir CI
+
+on:
+  schedule:
+      - cron:  '*/5 * * * *'
+
+jobs:
+  check:
+    name: Job board check
+    runs-on: ubuntu-18.04
+
+    env:
+      MIX_ENV: prod
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          elixir-version: '1.8.2'
+          otp-version: '22.3'
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile
+        run: mix compile
+
+      - name: Run bot
+        run: mix bot.check
