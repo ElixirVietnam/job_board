@@ -1,18 +1,16 @@
 name: Elixir CI
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
+  schedule:
+      - cron:  '*/5 * * * *'
 
 jobs:
-  test:
-    name: Test
+  check:
+    name: Job board check
     runs-on: ubuntu-18.04
 
     env:
-      MIX_ENV: test
+      MIX_ENV: prod
 
     steps:
       - uses: actions/checkout@v2
@@ -33,8 +31,8 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
-      - name: Check code format
-        run: mix format --check-formatted
+      - name: Compile
+        run: mix compile
 
-      - name: Run test
-        run: mix test
+      - name: Run bot
+        run: mix bot.check
