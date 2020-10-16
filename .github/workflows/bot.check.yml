@@ -11,6 +11,8 @@ jobs:
 
     env:
       MIX_ENV: prod
+      GH_USERNAME: ${{ secrets.GH_USERNAME }}
+      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
     steps:
       - uses: actions/checkout@v2
