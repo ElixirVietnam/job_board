@@ -5,7 +5,7 @@ defmodule JobBoard.Bot do
 
   require Logger
 
-  @enforce_keys [:interval, :owner, :repo]
+  @enforce_keys [:interval, :repo]
   defstruct @enforce_keys
 
   def start_link(options) do
@@ -15,13 +15,11 @@ defmodule JobBoard.Bot do
   def init(options) do
     schedule_perform(0)
 
-    with {:ok, owner} <- fetch_option(options, :owner),
-         {:ok, repo} <- fetch_option(options, :repo),
+    with {:ok, repo} <- fetch_option(options, :repo),
          {:ok, interval} <- fetch_option(options, :interval) do
       state = %__MODULE__{
         interval: interval,
-        repo: repo,
-        owner: owner
+        repo: repo
       }
 
       {:ok, state}
@@ -33,8 +31,8 @@ defmodule JobBoard.Bot do
   def handle_info(:perform, state) do
     schedule_perform(state.interval)
 
-    state.owner
-    |> Github.stream_issues(state.repo)
+    state.repo
+    |> Github.stream_issues()
     |> Stream.flat_map(& &1)
     |> Task.async_stream(&perform_issue(&1, state))
     |> Stream.run()
@@ -44,7 +42,7 @@ defmodule JobBoard.Bot do
     {:noreply, state}
   end
 
-  def perform_issue(issue, %{owner: owner, repo: repo}) do
+  def perform_issue(issue, %{repo: repo}) do
     %{"title" => title, "number" => number, "labels" => labels} = issue
 
     cond do
@@ -54,10 +52,10 @@ defmodule JobBoard.Bot do
           labels: ["Expired"]
         }
 
-        with {:ok, _issue} <- Github.update_issue(owner, repo, number, payload),
+        with {:ok, _issue} <- Github.update_issue(repo, number, payload),
              closing_comment =
                ":robot: Closing this job post because it has been expired :alarm_clock:.",
-             {:ok, _comment} <- Github.create_comment(owner, repo, number, closing_comment) do
+             {:ok, _comment} <- Github.create_comment(repo, number, closing_comment) do
           Logger.debug("Closed expired job", issue_number: Integer.to_string(number))
         end
 
@@ -67,7 +65,7 @@ defmodule JobBoard.Bot do
           labels: ["Maybe Agency"]
         }
 
-        with {:ok, _issue} <- Github.update_issue(owner, repo, number, payload),
+        with {:ok, _issue} <- Github.update_issue(repo, number, payload),
              closing_comment = """
              Thank you for posting! We see that you are using personal emails for contact info. Currently we do not accept jobs from head-hunters or agencies for the sake of the high quality of the job board.
 
@@ -75,7 +73,7 @@ defmodule JobBoard.Bot do
 
              Thank you and have a good day!
              """,
-             {:ok, _comment} <- Github.create_comment(owner, repo, number, closing_comment) do
+             {:ok, _comment} <- Github.create_comment(repo, number, closing_comment) do
           Logger.debug("Closed job because it might be from agencies",
             issue_number: Integer.to_string(number)
           )
@@ -92,7 +90,7 @@ defmodule JobBoard.Bot do
             labels: MapSet.to_list(labels)
           }
 
-          with {:ok, _} <- Github.update_issue(owner, repo, number, payload) do
+          with {:ok, _} <- Github.update_issue(repo, number, payload) do
             Logger.debug("Added labels to issue: #{inspect(labels)}", issue_number: number)
           end
         end

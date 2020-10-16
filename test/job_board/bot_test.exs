@@ -47,7 +47,7 @@ defmodule JobBoard.BotTest do
 
       log =
         ExUnit.CaptureLog.capture_log(fn ->
-          assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+          assert Bot.perform_issue(issue, %{repo: "foo/bar"}) == :ok
         end)
 
       assert log =~ "Closed expired job"
@@ -66,7 +66,7 @@ defmodule JobBoard.BotTest do
 
       log =
         ExUnit.CaptureLog.capture_log(fn ->
-          assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+          assert Bot.perform_issue(issue, %{repo: "foo/bar"}) == :ok
         end)
 
       assert log =~ "Added labels to issue"
@@ -85,7 +85,7 @@ defmodule JobBoard.BotTest do
 
       log =
         ExUnit.CaptureLog.capture_log(fn ->
-          assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+          assert Bot.perform_issue(issue, %{repo: "foo/bar"}) == :ok
         end)
 
       assert log =~ "Added labels to issue"
@@ -190,7 +190,7 @@ defmodule JobBoard.BotTest do
       end)
 
       ExUnit.CaptureLog.capture_log(fn ->
-        assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+        assert Bot.perform_issue(issue, %{repo: "foo/bar"}) == :ok
       end)
     end
 
@@ -201,7 +201,7 @@ defmodule JobBoard.BotTest do
           "title" => "Random title"
       }
 
-      assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+      assert Bot.perform_issue(issue, %{repo: "foo/bar"}) == :ok
     end
 
     test "closes job posts that might be from agency" do
@@ -226,7 +226,7 @@ defmodule JobBoard.BotTest do
 
       log =
         ExUnit.CaptureLog.capture_log(fn ->
-          assert Bot.perform_issue(issue, %{owner: "foo", repo: "bar"}) == :ok
+          assert Bot.perform_issue(issue, %{repo: "foo/bar"}) == :ok
         end)
 
       assert log =~ "Closed job because it might be from agencies"

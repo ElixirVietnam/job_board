@@ -4,10 +4,10 @@ defmodule JobBoard.Github do
   @http_client Application.get_env(:job_board, :http_client, JobBoard.HTTPClient.Standard)
   @config Application.fetch_env!(:job_board, __MODULE__)
 
-  def stream_issues(owner, repo) do
+  def stream_issues(repo) do
     Stream.unfold(1, fn page ->
       if page do
-        case list_issues(owner, repo, page) do
+        case list_issues(repo, page) do
           {:ok, issues, true} -> {issues, page + 1}
           {:ok, issues, false} -> {issues, nil}
           :error -> nil
@@ -16,10 +16,10 @@ defmodule JobBoard.Github do
     end)
   end
 
-  defp list_issues(owner, repo, page) when page > 0 do
+  defp list_issues(repo, page) when page > 0 do
     query_string = URI.encode_query(%{page: page})
 
-    req_url = ["/repos/", owner, ?/, repo, "/issues", ?? | query_string]
+    req_url = ["/repos/", repo, "/issues", ?? | query_string]
 
     req_headers = [{"accept", "application/json"}]
 
@@ -56,12 +56,10 @@ defmodule JobBoard.Github do
     end)
   end
 
-  def update_issue(owner, repo, issue_id, payload)
+  def update_issue(repo, issue_id, payload)
       when is_number(issue_id) and is_map(payload) do
     req_url = [
       "/repos/",
-      owner,
-      ?/,
       repo,
       "/issues/",
       Integer.to_string(issue_id)
@@ -98,12 +96,10 @@ defmodule JobBoard.Github do
     end
   end
 
-  def create_comment(owner, repo, issue_id, comment_body)
+  def create_comment(repo, issue_id, comment_body)
       when is_number(issue_id) and is_binary(comment_body) do
     req_url = [
       "/repos/",
-      owner,
-      ?/,
       repo,
       "/issues/",
       Integer.to_string(issue_id),
