@@ -52,7 +52,7 @@ defmodule JobBoard.Github do
 
   defp has_next_page?(headers) do
     Enum.any?(headers, fn {key, value} ->
-      key == "Link" and String.contains?(value, ~s(rel="next"))
+      key == "link" and String.contains?(value, ~s(rel="next"))
     end)
   end
 
