@@ -56,7 +56,7 @@ defmodule JobBoard.Bot do
       written_in_vietnamese?(issue) ->
         payload = %{
           state: "closed",
-          labels: ["Maybe Agency"]
+          labels: ["invalid"]
         }
 
         with {:ok, _issue} <- Github.update_issue(repo, number, payload),

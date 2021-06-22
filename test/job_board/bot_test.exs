@@ -239,7 +239,7 @@ defmodule JobBoard.BotTest do
         assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1"
 
         assert Jason.decode!(req_body) == %{
-                 "labels" => ["Maybe Agency"],
+                 "labels" => ["invalid"],
                  "state" => "closed"
                }
 
