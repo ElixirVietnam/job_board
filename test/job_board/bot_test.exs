@@ -231,5 +231,33 @@ defmodule JobBoard.BotTest do
 
       assert log =~ "Closed job because it might be from agencies"
     end
+
+    test "detects Vietnamese posts and closes them" do
+      issue = %{@issue | "body" => "hiring a good developer with lương cạnh tranh"}
+
+      expect(HTTPClient.Mock, :request, fn :patch, req_path, _, req_body ->
+        assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1"
+
+        assert Jason.decode!(req_body) == %{
+                 "labels" => ["Maybe Agency"],
+                 "state" => "closed"
+               }
+
+        {:ok, 200, [], Jason.encode!(issue)}
+      end)
+
+      expect(HTTPClient.Mock, :request, fn :post, req_path, _, _ ->
+        assert IO.iodata_to_binary(req_path) == "/repos/foo/bar/issues/1/comments"
+
+        {:ok, 201, [], "{}"}
+      end)
+
+      log =
+        ExUnit.CaptureLog.capture_log(fn ->
+          assert Bot.perform_issue(issue, "foo/bar") == :ok
+        end)
+
+      assert log =~ "Closed job because it is written in Vietnamese"
+    end
   end
 end

@@ -53,6 +53,28 @@ defmodule JobBoard.Bot do
 
         :ok
 
+      written_in_vietnamese?(issue) ->
+        payload = %{
+          state: "closed",
+          labels: ["Maybe Agency"]
+        }
+
+        with {:ok, _issue} <- Github.update_issue(repo, number, payload),
+             closing_comment = """
+             Thank you for posting! Unfortunately, we require job posts to be written in English.
+
+             In case of misunderstanding, please help to clarify with a comment. This post will remain closed until the concern is fully addressed.
+
+             Thank you and have a good day!
+             """,
+             {:ok, _comment} <- Github.create_comment(repo, number, closing_comment) do
+          Logger.debug("Closed job because it is written in Vietnamese",
+            issue_number: Integer.to_string(number)
+          )
+        end
+
+        :ok
+
       true ->
         existing_labels = labels |> Enum.map(& &1["name"]) |> MapSet.new()
         labels = determine_labels(existing_labels, title)
@@ -177,5 +199,13 @@ defmodule JobBoard.Bot do
     "Authorized" not in label_names and
       login not in @authorized_users and
       String.contains?(body, "@gmail.com")
+  end
+
+  @vietnamese_keywords ["lương", "cạnh tranh", "thưởng", "lập trình"]
+
+  defp written_in_vietnamese?(%{"body" => body}) do
+    body
+    |> String.normalize(:nfc)
+    |> String.contains?(@vietnamese_keywords)
   end
 end
