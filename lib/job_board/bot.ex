@@ -191,7 +191,7 @@ defmodule JobBoard.Bot do
     NaiveDateTime.diff(NaiveDateTime.utc_now(), created_at) > expiry_threshold
   end
 
-  @authorized_users ["Jesse111-flyaway"]
+  @authorized_users []
 
   defp maybe_from_agency?(%{"body" => body, "labels" => labels, "user" => %{"login" => login}}) do
     label_names = Enum.map(labels, &Map.fetch!(&1, "name"))
